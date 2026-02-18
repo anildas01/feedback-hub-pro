@@ -89,22 +89,22 @@ const PromptSubmission = () => {
     return (
         <div className="min-h-screen bg-background flex flex-col">
             {/* Hero Header */}
-            <div className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white py-12 px-4 relative overflow-hidden">
+            <div className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white py-8 px-4 relative overflow-hidden">
                 <div className="absolute inset-0 bg-[url('/noise.png')] opacity-10 mix-blend-overlay"></div>
                 <div className="max-w-3xl mx-auto text-center relative z-10">
-                    <div className="inline-flex items-center rounded-full bg-white/10 border border-white/20 px-3 py-1 text-sm font-medium text-white mb-6 backdrop-blur-sm">
-                        <Sparkles className="w-4 h-4 mr-2" />
+                    <div className="inline-flex items-center rounded-full bg-white/10 border border-white/20 px-3 py-0.5 text-xs font-medium text-white mb-4 backdrop-blur-sm">
+                        <Sparkles className="w-3 h-3 mr-1.5" />
                         AI Prompt Challenge
                     </div>
-                    <h1 className="text-4xl sm:text-5xl font-black mb-6 leading-tight">
+                    <h1 className="text-3xl sm:text-4xl font-black mb-4 leading-tight">
                         Design <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 to-amber-400">The Future</span>
                     </h1>
-                    <p className="text-white/80 text-lg max-w-2xl mx-auto leading-relaxed">
+                    <p className="text-white/80 text-base max-w-2xl mx-auto leading-relaxed">
                         Unleash your <strong>Logical Thinking</strong>, propose a <strong>New Idea</strong>, and craft a <strong>New Design</strong>.
                         Give us a prompt based on the theme, and we might build it live!
                     </p>
-                    <div className="mt-8 flex items-center justify-center gap-2 text-yellow-300 font-bold bg-white/10 py-2 px-4 rounded-lg inline-block backdrop-blur-sm">
-                        <Trophy className="w-5 h-5 inline mr-1" /> Win Exciting Prizes for the Best Prompt!
+                    <div className="mt-6 flex items-center justify-center gap-2 text-yellow-300 text-sm font-bold bg-white/10 py-1.5 px-3 rounded-lg inline-block backdrop-blur-sm">
+                        <Trophy className="w-4 h-4 inline mr-1" /> Win Exciting Prizes for the Best Prompt!
                     </div>
                 </div>
             </div>

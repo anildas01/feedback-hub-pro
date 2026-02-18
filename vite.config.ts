@@ -8,7 +8,7 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
-    allowedHosts: ["feedback-hub-pro.onrender.com"],
+    allowedHosts: ["profenger.vercel.app"],
     hmr: {
       overlay: false,
     },
