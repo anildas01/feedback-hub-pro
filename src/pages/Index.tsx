@@ -15,59 +15,54 @@ import eventPoster from "@/assets/event-poster.jfif";
 
 const schema = z.object({
   name: z.string().trim().min(2, "Name must be at least 2 characters").max(100),
-  email: z.string().trim().email("Please enter a valid email address"),
+  email: z.string().trim().email("Please enter a valid email address").optional().or(z.literal("")),
   phone: z.string().trim().regex(/^[0-9+\-\s()]{7,15}$/, "Please enter a valid phone number"),
-  comments: z.string().max(1000).optional(),
+  comments: z.string().trim().min(5, "Please share your thoughts (at least 5 characters)").max(1000),
+  overall_rating: z.number().min(1, "Please provide an overall rating"),
 });
 
 type FormData = z.infer<typeof schema>;
-
-const questions = [
-  { key: "q1_rating" as const, label: "How would you rate the session content (What is Web Development)?", icon: BookOpen },
-  { key: "q2_rating" as const, label: "How useful was the Career Opportunities segment?", icon: Briefcase },
-  { key: "q3_rating" as const, label: "How would you rate the 'Skills You Need' discussion?", icon: Lightbulb },
-  { key: "q4_rating" as const, label: "How helpful was the 'How to Get Started' guidance?", icon: Rocket },
-];
 
 const Index = () => {
   const { toast } = useToast();
   const [submitted, setSubmitted] = useState(false);
   const [submittedName, setSubmittedName] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [ratings, setRatings] = useState({
-    q1_rating: 0,
-    q2_rating: 0,
-    q3_rating: 0,
-    q4_rating: 0,
-    overall_rating: 0,
-  });
 
-  const { register, handleSubmit, formState: { errors }, reset } = useForm<FormData>({
+  const { register, handleSubmit, setValue, watch, formState: { errors }, reset } = useForm<FormData>({
     resolver: zodResolver(schema),
+    defaultValues: {
+      overall_rating: 0
+    }
   });
 
-  const updateRating = (key: keyof typeof ratings) => (value: number) => {
-    setRatings((prev) => ({ ...prev, [key]: value }));
-  };
+  const overallRating = watch("overall_rating");
 
   const onSubmit = async (data: FormData) => {
-    if (Object.values(ratings).some((r) => r === 0)) {
-      toast({ title: "Please rate all questions before submitting.", variant: "destructive" });
+    if (data.overall_rating === 0) {
+      toast({ title: "Please provide an overall rating.", variant: "destructive" });
       return;
     }
+
     setSubmitting(true);
     try {
       const { error } = await supabase.from("feedback_submissions").insert({
         name: data.name,
-        email: data.email,
+        email: data.email || null,
         phone: data.phone,
-        comments: data.comments || null,
-        ...ratings,
+        comments: data.comments,
+        overall_rating: data.overall_rating,
+        // Send null for removed questions if DB expects them, otherwise omit if schema allows
+        q1_rating: null,
+        q2_rating: null,
+        q3_rating: null,
+        q4_rating: null,
       });
       if (error) throw error;
       setSubmittedName(data.name.split(" ")[0]);
       setSubmitted(true);
     } catch (err) {
+      console.error("Submission error:", err);
       toast({ title: "Failed to submit. Please try again.", variant: "destructive" });
     } finally {
       setSubmitting(false);
@@ -77,7 +72,6 @@ const Index = () => {
   const handleReset = () => {
     setSubmitted(false);
     setSubmittedName("");
-    setRatings({ q1_rating: 0, q2_rating: 0, q3_rating: 0, q4_rating: 0, overall_rating: 0 });
     reset();
   };
 
@@ -115,7 +109,7 @@ const Index = () => {
         <div className="bg-card rounded-2xl shadow-card border border-border p-6 sm:p-8 mb-6">
           <h2 className="text-xl font-bold text-foreground mb-1">Share Your Feedback</h2>
           <p className="text-muted-foreground text-sm mb-6">
-            Your honest feedback helps us improve future sessions. All fields are required.
+            Your honest feedback helps us improve future sessions.
           </p>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -147,7 +141,7 @@ const Index = () => {
                 </div>
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="email">Email Address *</Label>
+                <Label htmlFor="email">Email Address <span className="text-muted-foreground font-normal">(Optional)</span></Label>
                 <Input
                   id="email"
                   type="email"
@@ -162,35 +156,21 @@ const Index = () => {
             {/* Session Ratings */}
             <div className="space-y-4">
               <h3 className="text-sm font-semibold text-primary uppercase tracking-wider border-b border-border pb-2">
-                Session Ratings
+                Your Feedback
               </h3>
-              {questions.map(({ key, label, icon: Icon }) => (
-                <div key={key} className="bg-secondary/40 rounded-xl p-4">
-                  <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <Icon className="w-4 h-4 text-primary" />
-                    </div>
-                    <StarRating
-                      value={ratings[key]}
-                      onChange={updateRating(key)}
-                      label={label}
-                    />
-                  </div>
-                </div>
-              ))}
 
               {/* Overall Rating */}
-              <div className="bg-primary/5 border border-primary/20 rounded-xl p-4">
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-primary font-bold text-sm">★</span>
-                  </div>
+              <div className="bg-primary/5 border border-primary/20 rounded-xl p-6 text-center">
+                <Label className="block mb-4 text-base font-medium">
+                  Overall, how would you rate this Career Awareness Session? <span className="text-destructive">*</span>
+                </Label>
+                <div className="flex justify-center">
                   <StarRating
-                    value={ratings.overall_rating}
-                    onChange={updateRating("overall_rating")}
-                    label="Overall, how would you rate this Career Awareness Session?"
-                  />
+                    value={overallRating}
+                    onChange={(val) => setValue("overall_rating", val)}
+                    size="lg" label={""}                  />
                 </div>
+                {errors.overall_rating && <p className="text-destructive text-sm mt-2">{errors.overall_rating.message}</p>}
               </div>
             </div>
 
@@ -204,14 +184,15 @@ const Index = () => {
                   <MessageSquare className="w-4 h-4 text-primary" />
                 </div>
                 <div className="flex-1 space-y-1.5">
-                  <Label htmlFor="comments">Your thoughts, suggestions, or feedback</Label>
+                  <Label htmlFor="comments">Your thoughts, suggestions, or feedback <span className="text-destructive">*</span></Label>
                   <Textarea
                     id="comments"
-                    placeholder="Share anything you'd like — what you enjoyed, what could be improved, topics you'd like covered in future sessions..."
+                    placeholder="Share anything you'd like — what you enjoyed, what could be improved..."
                     rows={4}
                     {...register("comments")}
-                    className="resize-none"
+                    className={`resize-none ${errors.comments ? "border-destructive" : ""}`}
                   />
+                  {errors.comments && <p className="text-destructive text-xs">{errors.comments.message}</p>}
                 </div>
               </div>
             </div>

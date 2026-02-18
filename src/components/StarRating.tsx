@@ -5,11 +5,13 @@ interface StarRatingProps {
   value: number;
   onChange: (rating: number) => void;
   label: string;
+  size?: "sm" | "md" | "lg";
 }
 
 const ratingLabels = ["", "Poor", "Fair", "Good", "Very Good", "Excellent"];
 
-export const StarRating = ({ value, onChange, label }: StarRatingProps) => {
+export const StarRating = ({ value, onChange, label, size = "md" }: StarRatingProps) => {
+  const starSize = size === "lg" ? "w-10 h-10" : size === "sm" ? "w-4 h-4" : "w-8 h-8";
   return (
     <div className="space-y-2">
       <p className="text-sm font-medium text-foreground">{label}</p>
@@ -23,7 +25,8 @@ export const StarRating = ({ value, onChange, label }: StarRatingProps) => {
           >
             <Star
               className={cn(
-                "w-8 h-8 transition-colors",
+                starSize,
+                "transition-colors",
                 star <= value
                   ? "fill-star text-star"
                   : "text-star-empty hover:text-star"
