@@ -89,11 +89,11 @@ const Index = () => {
               </Button>
             </Link>
           </div>
-          <img
+          {/* <img
             src="/LOGO%20PR%20LEARNING.png"
             alt="Profenger Learning"
             className="h-10 w-auto object-contain mt-8 mb-4 sm:absolute sm:left-0 sm:mt-0 sm:mb-0 sm:h-12 sm:top-1/2 sm:-translate-y-1/2"
-          />
+          /> */}
           <div className="text-center sm:pl-16">
             {/* Added padding left on desktop to balance if needed, or just center text normally */}
             <h1 className="text-xl sm:text-3xl font-black leading-tight">
