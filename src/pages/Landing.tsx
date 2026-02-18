@@ -86,10 +86,10 @@ const Landing = () => {
                         <div className="absolute bottom-0 left-0 w-48 h-48 bg-black/10 rounded-full translate-y-1/2 -translate-x-1/2 blur-2xl"></div>
 
                         <div className="relative z-10 flex flex-col md:flex-row items-center gap-8 md:gap-16">
-                            <div className="flex-1 text-center md:text-left w-full">
+                            <div className="flex-1 text-left w-full">
                                 <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">Session Details</h2>
                                 <div className="space-y-4">
-                                    <div className="flex items-center gap-4 text-white/90 justify-center md:justify-start">
+                                    <div className="flex items-center gap-4 text-white/90 justify-start">
                                         <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center shrink-0">
                                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -100,7 +100,7 @@ const Landing = () => {
                                             <p className="font-medium">18 / 02 / 2026</p>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-4 text-white/90 justify-center md:justify-start">
+                                    <div className="flex items-center gap-4 text-white/90 justify-start">
                                         <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center shrink-0">
                                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -111,7 +111,7 @@ const Landing = () => {
                                             <p className="font-medium">02:30 PM</p>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-4 text-white/90 justify-center md:justify-start">
+                                    <div className="flex items-center gap-4 text-white/90 justify-start">
                                         <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center shrink-0">
                                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -131,11 +131,11 @@ const Landing = () => {
                                         <Rocket className="w-5 h-5 mr-2" />
                                         Hosted By
                                     </h3>
-                                    <div className="flex items-center space-x-4 justify-center md:justify-start">
-                                        <img src="/LOGO PR LEARNING.png" alt="Profenger" className="h-12 w-auto object-contain bg-white rounded-lg p-1 shrink-0" />
-                                        <div className="text-left min-w-0">
-                                            <p className="text-white font-bold truncate">Profenger Learning</p>
-                                            <p className="text-white/70 text-sm truncate">Empowering Future Tech</p>
+                                    <div className="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
+                                        <img src="/LOGO PR LEARNING.png" alt="Profenger" className="h-10 sm:h-12 w-auto object-contain bg-white rounded-lg p-1 shrink-0" />
+                                        <div>
+                                            <p className="text-white font-bold">Profenger Learning</p>
+                                            <p className="text-white/70 text-sm">Empowering Future Tech</p>
                                         </div>
                                     </div>
                                 </div>
