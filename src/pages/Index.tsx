@@ -10,13 +10,13 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, BookOpen, Briefcase, Lightbulb, Rocket, MessageSquare } from "lucide-react";
-import { ms } from "date-fns/locale";
+import { Loader2, MessageSquare } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const schema = z.object({
   name: z.string().trim().min(2, "Name must be at least 2 characters").max(100),
   email: z.string().trim().email("Please enter a valid email address").optional().or(z.literal("")),
-  phone: z.string().trim().regex(/^[0-9+\-\s()]{7,15}$/, "Please enter a valid phone number"),
+  phone: z.string().trim().regex(/^\d{10}$/, "Please enter a valid 10-digit phone number"),
   comments: z.string().trim().min(5, "Please share your thoughts (at least 5 characters)").max(1000),
   overall_rating: z.number().min(1, "Please provide an overall rating"),
 });
@@ -80,14 +80,22 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Header */}
-      <div className="gradient-hero text-primary-foreground py-6 px-4">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-center relative">
+      <div className="gradient-hero text-primary-foreground py-6 px-4 relative">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-center relative pt-8 sm:pt-0">
+          <div className="absolute top-0 left-0 sm:-ml-4">
+            <Link to="/">
+              <Button variant="ghost" size="sm" className="text-white hover:text-white/80 hover:bg-white/10">
+                ← Back
+              </Button>
+            </Link>
+          </div>
           <img
             src="/LOGO%20PR%20LEARNING.png"
             alt="Profenger Learning"
-            className="h-12 w-auto object-contain sm:absolute sm:left-0 mb-4 sm:mb-0"
+            className="h-10 w-auto object-contain mt-8 mb-4 sm:absolute sm:left-0 sm:mt-0 sm:mb-0 sm:h-12 sm:top-1/2 sm:-translate-y-1/2"
           />
-          <div className="text-center">
+          <div className="text-center sm:pl-16">
+            {/* Added padding left on desktop to balance if needed, or just center text normally */}
             <h1 className="text-xl sm:text-3xl font-black leading-tight">
               Behind Every App
             </h1>
@@ -127,7 +135,7 @@ const Index = () => {
                   <Label htmlFor="phone">Phone Number *</Label>
                   <Input
                     id="phone"
-                    placeholder="+91 XXXXX XXXXX"
+                    placeholder="9876543210"
                     {...register("phone")}
                     className={errors.phone ? "border-destructive" : ""}
                   />

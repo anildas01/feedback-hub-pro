@@ -3,7 +3,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
-import { ThankYou } from "@/components/ThankYou";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -15,8 +14,8 @@ import { Link } from "react-router-dom";
 // Schema for prompt submission
 const schema = z.object({
     name: z.string().trim().min(2, "Name must be at least 2 characters").max(100),
-    email: z.string().trim().email("Please enter a valid email address"),
-    phone: z.string().trim().regex(/^[0-9+\-\s()]{7,15}$/, "Please enter a valid phone number"),
+    email: z.string().trim().email("Please enter a valid email address").optional().or(z.literal("")),
+    phone: z.string().trim().regex(/^\d{10}$/, "Please enter a valid 10-digit phone number"),
     prompt: z.string().min(10, "Prompt must be at least 10 characters").max(2000, "Prompt limit is 2000 characters"),
 });
 
@@ -90,6 +89,13 @@ const PromptSubmission = () => {
         <div className="min-h-screen bg-background flex flex-col">
             {/* Hero Header */}
             <div className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white py-8 px-4 relative overflow-hidden">
+                <div className="relative z-20 mb-4 sm:absolute sm:top-4 sm:left-4 sm:mb-0">
+                    <Link to="/">
+                        <Button variant="ghost" size="sm" className="text-white hover:text-white/80 hover:bg-white/10">
+                            ← Back
+                        </Button>
+                    </Link>
+                </div>
                 <div className="absolute inset-0 bg-[url('/noise.png')] opacity-10 mix-blend-overlay"></div>
                 <div className="max-w-3xl mx-auto text-center relative z-10">
                     <div className="inline-flex items-center rounded-full bg-white/10 border border-white/20 px-3 py-0.5 text-xs font-medium text-white mb-4 backdrop-blur-sm">
@@ -139,7 +145,7 @@ const PromptSubmission = () => {
 
                                 <div className="grid sm:grid-cols-2 gap-4">
                                     <div className="space-y-1.5">
-                                        <Label htmlFor="email">Email Address <span className="text-destructive">*</span></Label>
+                                        <Label htmlFor="email">Email Address <span className="text-muted-foreground font-normal">(Optional)</span></Label>
                                         <Input
                                             id="email"
                                             type="email"
@@ -153,7 +159,7 @@ const PromptSubmission = () => {
                                         <Label htmlFor="phone">Phone Number <span className="text-destructive">*</span></Label>
                                         <Input
                                             id="phone"
-                                            placeholder="+91 XXXXX XXXXX"
+                                            placeholder="9876543210"
                                             {...register("phone")}
                                             className={errors.phone ? "border-destructive bg-destructive/5" : "bg-secondary/20"}
                                         />
