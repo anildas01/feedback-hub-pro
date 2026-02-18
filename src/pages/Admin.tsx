@@ -187,17 +187,7 @@ export default function Admin() {
                   <p className="text-xs text-muted-foreground">Total Responses</p>
                 </div>
               </div>
-              {ratingLabels.slice(0, 4).map(({ key, label }) => (
-                <div key={key} className="bg-card rounded-xl border border-border p-4 shadow-card">
-                  <p className="text-xl font-bold text-foreground">{avgRating(submissions, key)}</p>
-                  <div className="flex">
-                    {[1, 2, 3, 4, 5].map((s) => (
-                      <span key={s} className={s <= Math.round(Number(avgRating(submissions, key))) ? "text-star text-xs" : "text-star-empty text-xs"}>★</span>
-                    ))}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-0.5 truncate">{label}</p>
-                </div>
-              ))}
+
               <div className="bg-primary/5 border border-primary/20 rounded-xl p-4">
                 <p className="text-xl font-bold text-primary">{avgRating(submissions, "overall_rating")}</p>
                 <div className="flex">
