@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, BookOpen, Briefcase, Lightbulb, Rocket, MessageSquare } from "lucide-react";
-import eventPoster from "@/assets/event-poster.jfif";
+import { ms } from "date-fns/locale";
 
 const schema = z.object({
   name: z.string().trim().min(2, "Name must be at least 2 characters").max(100),
@@ -80,25 +80,19 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Header */}
-      <div className="gradient-hero text-primary-foreground py-8 px-4">
-        <div className="max-w-2xl mx-auto flex flex-col sm:flex-row items-center gap-6">
+      <div className="gradient-hero text-primary-foreground py-6 px-4">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-center relative">
           <img
-            src={eventPoster}
-            alt="Behind Every App - Career Awareness Session"
-            className="w-32 h-40 object-cover rounded-xl shadow-lg flex-shrink-0"
+            src="/LOGO%20PR%20LEARNING.png"
+            alt="Profenger Learning"
+            className="h-12 w-auto object-contain sm:absolute sm:left-0 mb-4 sm:mb-0"
           />
-          <div className="text-center sm:text-left">
-            <p className="text-primary-foreground/70 text-sm font-medium uppercase tracking-widest mb-1">
-              Career Awareness Session
-            </p>
-            <h1 className="text-3xl sm:text-4xl font-black mb-2 leading-tight">
+          <div className="text-center">
+            <h1 className="text-xl sm:text-3xl font-black leading-tight">
               Behind Every App
             </h1>
-            <p className="text-primary-foreground/80 text-sm mb-1">
-              Department of Commerce · NSS College Manjeri
-            </p>
-            <p className="text-primary-foreground/70 text-xs">
-              18/02/2026 · 02:30 PM · Organized by Profenger Learning
+            <p className="text-primary-foreground/80 text-xs sm:text-sm">
+              Career Awareness Session · NSS College Manjeri · 18/02/2026
             </p>
           </div>
         </div>
@@ -162,13 +156,13 @@ const Index = () => {
               {/* Overall Rating */}
               <div className="bg-primary/5 border border-primary/20 rounded-xl p-6 text-center">
                 <Label className="block mb-4 text-base font-medium">
-                  Overall, how would you rate this Career Awareness Session? <span className="text-destructive">*</span>
+                  How would you rate this Career Awareness Session? <span className="text-destructive">*</span>
                 </Label>
                 <div className="flex justify-center">
                   <StarRating
                     value={overallRating}
                     onChange={(val) => setValue("overall_rating", val)}
-                    size="lg" label={""}                  />
+                    size="lg" label={""} />
                 </div>
                 {errors.overall_rating && <p className="text-destructive text-sm mt-2">{errors.overall_rating.message}</p>}
               </div>
@@ -176,9 +170,9 @@ const Index = () => {
 
             {/* Comments */}
             <div className="space-y-2">
-              <h3 className="text-sm font-semibold text-primary uppercase tracking-wider border-b border-border pb-2">
+              {/* <h3 className="text-sm font-semibold text-primary uppercase tracking-wider border-b border-border pb-2">
                 Additional Comments
-              </h3>
+              </h3> */}
               <div className="flex items-start gap-3 bg-secondary/40 rounded-xl p-4">
                 <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
                   <MessageSquare className="w-4 h-4 text-primary" />
