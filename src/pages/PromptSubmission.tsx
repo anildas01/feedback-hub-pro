@@ -109,9 +109,9 @@ const PromptSubmission = () => {
                         Unleash your <strong>Logical Thinking</strong>, propose a <strong>New Idea</strong>, and craft a <strong>New Design</strong>.
                         Give us a contest based on the theme, and we might build it live!
                     </p>
-                    <div className="mt-6 flex items-center justify-center gap-2 text-yellow-300 text-sm font-bold bg-white/10 py-1.5 px-3 rounded-lg inline-block backdrop-blur-sm">
+                    {/* <div className="mt-6 flex items-center justify-center gap-2 text-yellow-300 text-sm font-bold bg-white/10 py-1.5 px-3 rounded-lg inline-block backdrop-blur-sm">
                         <Trophy className="w-4 h-4 inline mr-1" /> Win Exciting Prizes for the Best Contest!
-                    </div>
+                    </div> */}
                 </div>
             </div>
 
