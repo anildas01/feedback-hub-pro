@@ -65,7 +65,7 @@ const Landing = () => {
                             <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
                                 <Link to="/prompt-contest" className="w-full sm:w-auto">
                                     <Button size="lg" variant="outline" className="h-14 px-8 text-lg rounded-full w-full sm:w-auto border-primary/50 hover:bg-primary/5">
-                                        <Sparkles className="mr-2 w-5 h-5 text-primary" /> AI Prompt Contest
+                                        <Sparkles className="mr-2 w-5 h-5 text-primary" /> Contest
                                     </Button>
                                 </Link>
                                 <Link to="/feedback" className="w-full sm:w-auto">
@@ -97,7 +97,7 @@ const Landing = () => {
                                         </div>
                                         <div className="text-left">
                                             <p className="text-xs text-white/60 uppercase tracking-wider font-semibold">Date</p>
-                                            <p className="font-medium">18 / 02 / 2026</p>
+                                            <p className="font-medium">24 / 02 / 2026</p>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-4 text-white/90 justify-start">
@@ -108,7 +108,7 @@ const Landing = () => {
                                         </div>
                                         <div className="text-left">
                                             <p className="text-xs text-white/60 uppercase tracking-wider font-semibold">Time</p>
-                                            <p className="font-medium">02:30 PM</p>
+                                            <p className="font-medium">10:30 AM</p>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-4 text-white/90 justify-start">
@@ -120,7 +120,7 @@ const Landing = () => {
                                         </div>
                                         <div className="text-left">
                                             <p className="text-xs text-white/60 uppercase tracking-wider font-semibold">Location</p>
-                                            <p className="font-medium">NSS College Manjeri</p>
+                                            <p className="font-medium">Priyadarshini Arts and Science College, Melmuri, Malappuram</p>
                                         </div>
                                     </div>
                                 </div>

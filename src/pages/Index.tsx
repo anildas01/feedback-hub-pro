@@ -100,7 +100,7 @@ const Index = () => {
               Behind Every App
             </h1>
             <p className="text-primary-foreground/80 text-xs sm:text-sm">
-              Career Awareness Session · NSS College Manjeri · 18/02/2026
+              Career Awareness Session · Priyadarshini Arts and Science College, Melmuri, Malappuram · 24/02/2026
             </p>
           </div>
         </div>

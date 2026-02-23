@@ -16,7 +16,7 @@ const schema = z.object({
     name: z.string().trim().min(2, "Name must be at least 2 characters").max(100),
     email: z.string().trim().email("Please enter a valid email address").optional().or(z.literal("")),
     phone: z.string().trim().regex(/^\d{10}$/, "Please enter a valid 10-digit phone number"),
-    prompt: z.string().min(10, "Prompt must be at least 10 characters").max(2000, "Prompt limit is 2000 characters"),
+    prompt: z.string().min(10, "Prompt must be at least 10 characters").max(5000, "Prompt limit is 5000 characters"),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -68,7 +68,7 @@ const PromptSubmission = () => {
                     </div>
                     <h2 className="text-3xl font-bold tracking-tight">Challenge Accepted, {submittedName}!</h2>
                     <p className="text-muted-foreground">
-                        Your prompt has been submitted. Get ready to see if your idea comes to life!
+                        Your Contest has been submitted. Get ready to see if your idea comes to life!
                     </p>
                     <div className="pt-4 flex flex-col gap-3">
                         <Button onClick={handleReset} variant="outline" className="w-full">
@@ -100,17 +100,17 @@ const PromptSubmission = () => {
                 <div className="max-w-3xl mx-auto text-center relative z-10">
                     <div className="inline-flex items-center rounded-full bg-white/10 border border-white/20 px-3 py-0.5 text-xs font-medium text-white mb-4 backdrop-blur-sm">
                         <Sparkles className="w-3 h-3 mr-1.5" />
-                        AI Prompt Challenge
+                        Contest Challenge
                     </div>
                     <h1 className="text-3xl sm:text-4xl font-black mb-4 leading-tight">
                         Design <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 to-amber-400">The Future</span>
                     </h1>
                     <p className="text-white/80 text-base max-w-2xl mx-auto leading-relaxed">
                         Unleash your <strong>Logical Thinking</strong>, propose a <strong>New Idea</strong>, and craft a <strong>New Design</strong>.
-                        Give us a prompt based on the theme, and we might build it live!
+                        Give us a contest based on the theme, and we might build it live!
                     </p>
                     <div className="mt-6 flex items-center justify-center gap-2 text-yellow-300 text-sm font-bold bg-white/10 py-1.5 px-3 rounded-lg inline-block backdrop-blur-sm">
-                        <Trophy className="w-4 h-4 inline mr-1" /> Win Exciting Prizes for the Best Prompt!
+                        <Trophy className="w-4 h-4 inline mr-1" /> Win Exciting Prizes for the Best Contest!
                     </div>
                 </div>
             </div>
@@ -119,9 +119,9 @@ const PromptSubmission = () => {
             <div className="flex-1 max-w-2xl mx-auto px-4 py-12 w-full">
                 <div className="bg-card rounded-2xl shadow-xl border border-border p-6 sm:p-10">
                     <div className="mb-8">
-                        <h2 className="text-2xl font-bold text-foreground">Submit Your Prompt</h2>
+                        <h2 className="text-2xl font-bold text-foreground">Submit Your Contest</h2>
                         <p className="text-muted-foreground mt-2">
-                            Provide your details and your creative prompt below.
+                            Provide your details and your creative contest below.
                         </p>
                     </div>
 
@@ -177,7 +177,7 @@ const PromptSubmission = () => {
 
                             <div className="bg-secondary/30 rounded-xl p-4 border border-border/50">
                                 <Label htmlFor="prompt" className="mb-2 block text-base">
-                                    Describe your website idea / prompt <span className="text-destructive">*</span>
+                                    Describe your website idea / Contest <span className="text-destructive">*</span>
                                 </Label>
                                 <p className="text-xs text-muted-foreground mb-3">
                                     Be specific! Describe the layout, colors, functionality, and purpose. The more detailed, the better.
@@ -205,7 +205,7 @@ const PromptSubmission = () => {
                                 </>
                             ) : (
                                 <>
-                                    <Sparkles className="w-5 h-5 mr-2" /> Submit Prompt
+                                    <Sparkles className="w-5 h-5 mr-2" /> Submit Contest
                                 </>
                             )}
                         </Button>
