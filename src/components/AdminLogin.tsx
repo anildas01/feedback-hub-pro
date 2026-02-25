@@ -5,13 +5,11 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Lock, ShieldCheck } from "lucide-react";
 import { ADMIN_SESSION_KEY, type AdminSession } from "@/integrations/mongodb/types";
+import { login } from "@/integrations/mongodb/client";
 
 interface AdminLoginProps {
   onLogin: () => void;
 }
-
-const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL;
-const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD;
 
 export const AdminLogin = ({ onLogin }: AdminLoginProps) => {
   const { toast } = useToast();
@@ -22,16 +20,15 @@ export const AdminLogin = ({ onLogin }: AdminLoginProps) => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    // Small delay to simulate network feel
-    await new Promise((r) => setTimeout(r, 400));
-    if (email.trim().toLowerCase() === ADMIN_EMAIL?.trim().toLowerCase() && password === ADMIN_PASSWORD) {
-      const session: AdminSession = { loggedIn: true, email: email.trim() };
+    try {
+      const session = await login(email, password);
       localStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(session));
       onLogin();
-    } else {
-      toast({ title: "Login failed", description: "Invalid email or password.", variant: "destructive" });
+    } catch (err: any) {
+      toast({ title: "Login failed", description: err.message || "Invalid credentials.", variant: "destructive" });
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (

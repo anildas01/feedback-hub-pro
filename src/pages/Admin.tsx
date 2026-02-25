@@ -1,9 +1,14 @@
 import { useEffect, useState } from "react";
-import { find } from "@/integrations/mongodb/client";
-import { ADMIN_SESSION_KEY, type FeedbackSubmission, type PromptSubmission } from "@/integrations/mongodb/types";
+import { find, createUser, fetchUsers } from "@/integrations/mongodb/client";
+import { ADMIN_SESSION_KEY, type FeedbackSubmission, type PromptSubmission, type User } from "@/integrations/mongodb/types";
 import { AdminLogin } from "@/components/AdminLogin";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import * as XLSX from "xlsx";
 import {
   LogOut,
   Users,
@@ -16,6 +21,7 @@ import {
   ChevronDown,
   ChevronUp,
   Lightbulb,
+  Download,
 } from "lucide-react";
 
 const StarDisplay = ({ rating }: { rating: number }) => (
@@ -36,12 +42,17 @@ const avgRating = (submissions: FeedbackSubmission[], key: keyof FeedbackSubmiss
 export default function Admin() {
   const { toast } = useToast();
   const [loggedIn, setLoggedIn] = useState(false);
+  const [userRole, setUserRole] = useState<string>("admin");
   const [loading, setLoading] = useState(true);
   const [submissions, setSubmissions] = useState<FeedbackSubmission[]>([]);
   const [prompts, setPrompts] = useState<PromptSubmission[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [fetching, setFetching] = useState(false);
+  const [creatingUser, setCreatingUser] = useState(false);
+  const [newEmail, setNewEmail] = useState("");
+  const [newPassword, setNewPassword] = useState("");
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"feedback" | "prompts">("feedback");
+  const [activeTab, setActiveTab] = useState<"feedback" | "prompts" | "users">("feedback");
 
   // Check localStorage for existing session
   useEffect(() => {
@@ -49,7 +60,10 @@ export default function Admin() {
       const raw = localStorage.getItem(ADMIN_SESSION_KEY);
       if (raw) {
         const session = JSON.parse(raw);
-        if (session?.loggedIn) setLoggedIn(true);
+        if (session?.loggedIn) {
+          setLoggedIn(true);
+          if (session.role) setUserRole(session.role);
+        }
       }
     } catch {
       // ignore corrupt session
@@ -60,14 +74,69 @@ export default function Admin() {
   useEffect(() => {
     if (loggedIn) {
       if (activeTab === "feedback") fetchSubmissions();
-      else fetchPrompts();
+      else if (activeTab === "prompts") fetchPrompts();
+      else if (activeTab === "users" && userRole === "superAdmin") loadUsers();
     }
-  }, [loggedIn, activeTab]);
+  }, [loggedIn, activeTab, userRole]);
+
+  const loadUsers = async () => {
+    try {
+      const data = await fetchUsers();
+      setUsers(data);
+    } catch {
+      toast({ title: "Failed to load users", variant: "destructive" });
+    }
+  };
+
+  const handleCreateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCreatingUser(true);
+    try {
+      await createUser(newEmail, newPassword);
+      toast({ title: "User created successfully" });
+      setNewEmail("");
+      setNewPassword("");
+      loadUsers();
+    } catch (err: any) {
+      toast({ title: "Failed to create user", description: err.message, variant: "destructive" });
+    } finally {
+      setCreatingUser(false);
+    }
+  };
+
+  const exportToPDF = (type: "feedback" | "prompts") => {
+    const doc = new jsPDF();
+    if (type === "feedback") {
+      doc.text("Feedback Submissions", 14, 15);
+      const tableData = submissions.map(s => [s.name, s.email || "-", s.phone, s.overall_rating ? s.overall_rating.toString() : "-", s.comments || "-"]);
+      autoTable(doc, { head: [['Name', 'Email', 'Phone', 'Rating', 'Comments']], body: tableData, startY: 20 });
+      doc.save("feedback_submissions.pdf");
+    } else {
+      doc.text("Prompt Submissions", 14, 15);
+      const tableData = prompts.map(s => [s.name, s.email || "-", s.phone, s.prompt]);
+      autoTable(doc, { head: [['Name', 'Email', 'Phone', 'Prompt']], body: tableData, startY: 20 });
+      doc.save("prompt_submissions.pdf");
+    }
+  };
+
+  const exportToExcel = (type: "feedback" | "prompts") => {
+    if (type === "feedback") {
+      const ws = XLSX.utils.json_to_sheet(submissions);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Feedback");
+      XLSX.writeFile(wb, "feedback_submissions.xlsx");
+    } else {
+      const ws = XLSX.utils.json_to_sheet(prompts);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Prompts");
+      XLSX.writeFile(wb, "prompt_submissions.xlsx");
+    }
+  };
 
   const fetchSubmissions = async () => {
     setFetching(true);
     try {
-      const data = await find<FeedbackSubmission>("feedback_submissions", {}, { created_at: -1 });
+      const data = await find<FeedbackSubmission>("feedback_submissions");
       setSubmissions(data);
     } catch {
       toast({ title: "Failed to load submissions", variant: "destructive" });
@@ -78,7 +147,7 @@ export default function Admin() {
   const fetchPrompts = async () => {
     setFetching(true);
     try {
-      const data = await find<PromptSubmission>("prompt_submissions", {}, { created_at: -1 });
+      const data = await find<PromptSubmission>("prompt_submissions");
       setPrompts(data);
     } catch {
       toast({ title: "Failed to load prompts", variant: "destructive" });
@@ -148,9 +217,20 @@ export default function Admin() {
           >
             Prompt Contest
           </button>
+          {userRole === "superAdmin" && (
+            <button
+              onClick={() => setActiveTab("users")}
+              className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${activeTab === "users"
+                ? "bg-card border-x border-t border-border text-primary"
+                : "text-muted-foreground hover:text-foreground"
+                }`}
+            >
+              Users
+            </button>
+          )}
         </div>
 
-        {activeTab === "feedback" ? (
+        {activeTab === "feedback" && (
           <>
             {/* Feedback Stats Cards */}
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
@@ -182,9 +262,21 @@ export default function Admin() {
                   <BarChart3 className="w-4 h-4 text-primary" />
                   All Submissions
                 </h2>
-                <button onClick={fetchSubmissions} className="text-xs text-primary hover:underline">
-                  Refresh
-                </button>
+                <div className="flex items-center gap-3">
+                  <button onClick={fetchSubmissions} className="text-xs text-primary hover:underline">
+                    Refresh
+                  </button>
+                  {userRole === "superAdmin" && (
+                    <div className="flex items-center gap-2 ml-2 pl-2 border-l border-border">
+                      <Button variant="outline" size="sm" onClick={() => exportToPDF("feedback")} className="h-7 text-xs px-2">
+                        <Download className="w-3 h-3 mr-1" /> PDF
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => exportToExcel("feedback")} className="h-7 text-xs px-2">
+                        <Download className="w-3 h-3 mr-1" /> Excel
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {fetching ? (
@@ -275,7 +367,9 @@ export default function Admin() {
               )}
             </div>
           </>
-        ) : (
+        )}
+
+        {activeTab === "prompts" && (
           /* Prompt Submissions Tab */
           <div className="bg-card rounded-2xl border border-border shadow-card overflow-hidden">
             <div className="px-4 py-4 border-b border-border flex items-center justify-between">
@@ -283,9 +377,21 @@ export default function Admin() {
                 <Lightbulb className="w-4 h-4 text-primary" />
                 Prompt Contest Entries ({prompts.length})
               </h2>
-              <button onClick={fetchPrompts} className="text-xs text-primary hover:underline">
-                Refresh
-              </button>
+              <div className="flex items-center gap-3">
+                <button onClick={fetchPrompts} className="text-xs text-primary hover:underline">
+                  Refresh
+                </button>
+                {userRole === "superAdmin" && (
+                  <div className="flex items-center gap-2 ml-2 pl-2 border-l border-border">
+                    <Button variant="outline" size="sm" onClick={() => exportToPDF("prompts")} className="h-7 text-xs px-2">
+                      <Download className="w-3 h-3 mr-1" /> PDF
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => exportToExcel("prompts")} className="h-7 text-xs px-2">
+                      <Download className="w-3 h-3 mr-1" /> Excel
+                    </Button>
+                  </div>
+                )}
+              </div>
             </div>
 
             {fetching ? (
@@ -355,6 +461,56 @@ export default function Admin() {
                 ))}
               </div>
             )}
+          </div>
+        )}
+
+        {activeTab === "users" && userRole === "superAdmin" && (
+          <div className="space-y-6">
+            <div className="bg-card rounded-2xl border border-border shadow-card overflow-hidden p-6 max-w-xl">
+              <h2 className="font-semibold text-xl mb-4 flex items-center gap-2">
+                <Users className="w-5 h-5 text-primary" /> Create Admin User
+              </h2>
+              <p className="text-muted-foreground text-sm mb-6">Create additional admin accounts. New users will have standard "admin" privileges (they cannot export data or create users).</p>
+
+              <form onSubmit={handleCreateUser} className="space-y-4">
+                <div className="space-y-1.5">
+                  <Label>Email</Label>
+                  <Input type="email" placeholder="admin@example.com" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} required />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Password</Label>
+                  <Input type="password" placeholder="Minimum 6 characters" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required minLength={6} />
+                </div>
+                <Button type="submit" disabled={creatingUser} className="w-full">
+                  {creatingUser ? "Creating..." : "Create User"}
+                </Button>
+              </form>
+            </div>
+
+            <div className="bg-card rounded-2xl border border-border shadow-card overflow-hidden">
+              <div className="px-4 py-4 border-b border-border flex items-center justify-between">
+                <h2 className="font-semibold text-foreground">Admin Directory</h2>
+                <div className="text-sm text-muted-foreground">{users.length} total user(s)</div>
+              </div>
+              <div className="divide-y divide-border">
+                {users.map(u => (
+                  <div key={u._id} className="p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                    <div>
+                      <p className="font-medium text-foreground">{u.email}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full ${u.role === "superAdmin" ? "bg-primary/20 text-primary" : "bg-secondary text-secondary-foreground"}`}>
+                          {u.role}
+                        </span>
+                        <span className="text-xs text-muted-foreground">Joined {new Date(u.created_at).toLocaleDateString()}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {users.length === 0 && !fetching && (
+                  <div className="py-8 text-center text-muted-foreground">No users found.</div>
+                )}
+              </div>
+            </div>
           </div>
         )}
       </div>

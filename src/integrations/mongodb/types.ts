@@ -23,9 +23,18 @@ export interface PromptSubmission extends MongoDocument {
     prompt: string;
 }
 
+export type Role = "admin" | "superAdmin";
+
 export interface AdminSession {
     loggedIn: boolean;
     email: string;
+    role?: Role;
+    token?: string;
+}
+
+export interface User extends MongoDocument {
+    email: string;
+    role: Role;
 }
 
 export const ADMIN_SESSION_KEY = "admin_session";
