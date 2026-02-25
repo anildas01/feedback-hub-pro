@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { find } from "@/integrations/mongodb/client";
+import { ADMIN_SESSION_KEY, type FeedbackSubmission, type PromptSubmission } from "@/integrations/mongodb/types";
 import { AdminLogin } from "@/components/AdminLogin";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -17,29 +18,6 @@ import {
   Lightbulb,
 } from "lucide-react";
 
-interface Submission {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  q1_rating: number;
-  q2_rating: number;
-  q3_rating: number;
-  q4_rating: number;
-  overall_rating: number;
-  comments: string | null;
-  created_at: string;
-}
-
-interface PromptSubmission {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  prompt: string;
-  created_at: string;
-}
-
 const StarDisplay = ({ rating }: { rating: number }) => (
   <div className="flex gap-0.5">
     {[1, 2, 3, 4, 5].map((s) => (
@@ -49,72 +27,70 @@ const StarDisplay = ({ rating }: { rating: number }) => (
   </div>
 );
 
-const avgRating = (submissions: Submission[], key: keyof Submission) => {
+const avgRating = (submissions: FeedbackSubmission[], key: keyof FeedbackSubmission) => {
   if (!submissions.length) return 0;
-  const sum = submissions.reduce((acc, s) => acc + (s[key] as number), 0);
+  const sum = submissions.reduce((acc, s) => acc + ((s[key] as number) || 0), 0);
   return (sum / submissions.length).toFixed(1);
 };
 
 export default function Admin() {
   const { toast } = useToast();
-  const [session, setSession] = useState<any>(null);
+  const [loggedIn, setLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [submissions, setSubmissions] = useState<Submission[]>([]);
+  const [submissions, setSubmissions] = useState<FeedbackSubmission[]>([]);
+  const [prompts, setPrompts] = useState<PromptSubmission[]>([]);
   const [fetching, setFetching] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
-
-  const [prompts, setPrompts] = useState<PromptSubmission[]>([]);
   const [activeTab, setActiveTab] = useState<"feedback" | "prompts">("feedback");
 
+  // Check localStorage for existing session
   useEffect(() => {
-    supabase.auth.onAuthStateChange((_event, sess) => {
-      setSession(sess);
-      setLoading(false);
-    });
-    supabase.auth.getSession().then(({ data: { session: sess } }) => {
-      setSession(sess);
-      setLoading(false);
-    });
+    try {
+      const raw = localStorage.getItem(ADMIN_SESSION_KEY);
+      if (raw) {
+        const session = JSON.parse(raw);
+        if (session?.loggedIn) setLoggedIn(true);
+      }
+    } catch {
+      // ignore corrupt session
+    }
+    setLoading(false);
   }, []);
 
   useEffect(() => {
-    if (session) {
+    if (loggedIn) {
       if (activeTab === "feedback") fetchSubmissions();
       else fetchPrompts();
     }
-  }, [session, activeTab]);
+  }, [loggedIn, activeTab]);
 
   const fetchSubmissions = async () => {
     setFetching(true);
-    const { data, error } = await supabase
-      .from("feedback_submissions")
-      .select("*")
-      .order("created_at", { ascending: false });
-    if (error) {
+    try {
+      const data = await find<FeedbackSubmission>("feedback_submissions", {}, { created_at: -1 });
+      setSubmissions(data);
+    } catch {
       toast({ title: "Failed to load submissions", variant: "destructive" });
-    } else {
-      setSubmissions(data || []);
     }
     setFetching(false);
   };
 
   const fetchPrompts = async () => {
     setFetching(true);
-    const { data, error } = await supabase
-      .from("prompt_submissions")
-      .select("*")
-      .order("created_at", { ascending: false });
-    if (error) {
+    try {
+      const data = await find<PromptSubmission>("prompt_submissions", {}, { created_at: -1 });
+      setPrompts(data);
+    } catch {
       toast({ title: "Failed to load prompts", variant: "destructive" });
-    } else {
-      setPrompts(data || []);
     }
     setFetching(false);
   };
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    setSession(null);
+  const handleLogout = () => {
+    localStorage.removeItem(ADMIN_SESSION_KEY);
+    setLoggedIn(false);
+    setSubmissions([]);
+    setPrompts([]);
   };
 
   if (loading) {
@@ -125,7 +101,7 @@ export default function Admin() {
     );
   }
 
-  if (!session) return <AdminLogin onLogin={() => { }} />;
+  if (!loggedIn) return <AdminLogin onLogin={() => setLoggedIn(true)} />;
 
   const ratingLabels = [
     { key: "q1_rating" as const, label: "Web Development Content" },
@@ -222,12 +198,11 @@ export default function Admin() {
                 </div>
               ) : (
                 <div className="divide-y divide-border">
-                  {submissions.map((sub, i) => (
-                    <div key={sub.id} className="hover:bg-secondary/30 transition-colors">
-                      {/* Row Summary */}
+                  {submissions.map((sub) => (
+                    <div key={sub._id} className="hover:bg-secondary/30 transition-colors">
                       <button
                         className="w-full px-4 py-4 text-left"
-                        onClick={() => setExpandedId(expandedId === sub.id ? null : sub.id)}
+                        onClick={() => setExpandedId(expandedId === sub._id ? null : sub._id!)}
                       >
                         <div className="flex items-center justify-between gap-4">
                           <div className="flex items-center gap-3 min-w-0">
@@ -247,7 +222,7 @@ export default function Admin() {
                             <span className="text-xs text-muted-foreground hidden md:block">
                               {new Date(sub.created_at).toLocaleDateString()}
                             </span>
-                            {expandedId === sub.id ? (
+                            {expandedId === sub._id ? (
                               <ChevronUp className="w-4 h-4 text-muted-foreground" />
                             ) : (
                               <ChevronDown className="w-4 h-4 text-muted-foreground" />
@@ -256,15 +231,14 @@ export default function Admin() {
                         </div>
                       </button>
 
-                      {/* Expanded Details */}
-                      {expandedId === sub.id && (
+                      {expandedId === sub._id && (
                         <div className="px-4 pb-4 bg-secondary/20">
                           <div className="grid sm:grid-cols-2 gap-4 pt-2">
                             <div className="space-y-2">
                               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Contact</p>
                               <div className="flex items-center gap-2 text-sm">
                                 <Mail className="w-3.5 h-3.5 text-primary" />
-                                <span>{sub.email}</span>
+                                <span>{sub.email || "—"}</span>
                               </div>
                               <div className="flex items-center gap-2 text-sm">
                                 <Phone className="w-3.5 h-3.5 text-primary" />
@@ -280,7 +254,7 @@ export default function Admin() {
                               {ratingLabels.map(({ key, label }) => (
                                 <div key={key} className="flex items-center justify-between text-xs gap-2">
                                   <span className="text-muted-foreground truncate">{label}</span>
-                                  <StarDisplay rating={sub[key]} />
+                                  <StarDisplay rating={sub[key] as number} />
                                 </div>
                               ))}
                             </div>
@@ -326,11 +300,10 @@ export default function Admin() {
             ) : (
               <div className="divide-y divide-border">
                 {prompts.map((sub) => (
-                  <div key={sub.id} className="hover:bg-secondary/30 transition-colors">
-                    {/* Row Summary */}
+                  <div key={sub._id} className="hover:bg-secondary/30 transition-colors">
                     <button
                       className="w-full px-4 py-4 text-left"
-                      onClick={() => setExpandedId(expandedId === sub.id ? null : sub.id)}
+                      onClick={() => setExpandedId(expandedId === sub._id ? null : sub._id!)}
                     >
                       <div className="flex items-center justify-between gap-4">
                         <div className="flex items-center gap-3 min-w-0">
@@ -346,7 +319,7 @@ export default function Admin() {
                           <span className="text-xs text-muted-foreground hidden md:block">
                             {new Date(sub.created_at).toLocaleDateString()}
                           </span>
-                          {expandedId === sub.id ? (
+                          {expandedId === sub._id ? (
                             <ChevronUp className="w-4 h-4 text-muted-foreground" />
                           ) : (
                             <ChevronDown className="w-4 h-4 text-muted-foreground" />
@@ -355,8 +328,7 @@ export default function Admin() {
                       </div>
                     </button>
 
-                    {/* Expanded Prompt Details */}
-                    {expandedId === sub.id && (
+                    {expandedId === sub._id && (
                       <div className="px-4 pb-4 bg-secondary/20">
                         <div className="grid sm:grid-cols-2 gap-4 pt-2 mb-3">
                           <div className="space-y-2">
@@ -373,7 +345,7 @@ export default function Admin() {
                         </div>
                         <div className="pt-3 border-t border-border">
                           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Prompt Submission</p>
-                          <div className="text-sm text-foreground/80 bg-background rounded-lg p-4 border border-border whitespace-pre-wrap font-mono relative">
+                          <div className="text-sm text-foreground/80 bg-background rounded-lg p-4 border border-border whitespace-pre-wrap font-mono">
                             {sub.prompt}
                           </div>
                         </div>

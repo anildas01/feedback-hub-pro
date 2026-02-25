@@ -1,14 +1,17 @@
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Lock, ShieldCheck } from "lucide-react";
+import { ADMIN_SESSION_KEY, type AdminSession } from "@/integrations/mongodb/types";
 
 interface AdminLoginProps {
   onLogin: () => void;
 }
+
+const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL;
+const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD;
 
 export const AdminLogin = ({ onLogin }: AdminLoginProps) => {
   const { toast } = useToast();
@@ -19,15 +22,16 @@ export const AdminLogin = ({ onLogin }: AdminLoginProps) => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
+    // Small delay to simulate network feel
+    await new Promise((r) => setTimeout(r, 400));
+    if (email.trim().toLowerCase() === ADMIN_EMAIL?.trim().toLowerCase() && password === ADMIN_PASSWORD) {
+      const session: AdminSession = { loggedIn: true, email: email.trim() };
+      localStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(session));
       onLogin();
-    } catch (err: any) {
-      toast({ title: "Login failed", description: err.message, variant: "destructive" });
-    } finally {
-      setLoading(false);
+    } else {
+      toast({ title: "Login failed", description: "Invalid email or password.", variant: "destructive" });
     }
+    setLoading(false);
   };
 
   return (
