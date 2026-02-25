@@ -4,7 +4,7 @@
  * Credentials stay server-side and are never exposed to the browser.
  */
 
-const API_BASE = "http://localhost:3001/api";
+const API_BASE = import.meta.env.DEV ? "http://localhost:3001/api" : "/api";
 
 /** Insert a document via the Express API */
 export async function insertOne(

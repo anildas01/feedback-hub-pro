@@ -96,8 +96,15 @@ app.get("/api/prompts", async (_req, res) => {
 });
 
 // ─── Start ─────────────────────────────────────────────────────
-connectDB().then(() => {
-    app.listen(PORT, () => {
-        console.log(`🚀 API server running at http://localhost:${PORT}`);
+if (process.env.NODE_ENV !== "production") {
+    connectDB().then(() => {
+        app.listen(PORT, () => {
+            console.log(`🚀 API server running at http://localhost:${PORT}`);
+        });
     });
-});
+} else {
+    // Vercel Serverless Function entry point
+    connectDB().catch(console.error);
+}
+
+export default app;
