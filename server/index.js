@@ -26,8 +26,17 @@ const client = new MongoClient(uri, {
 });
 
 let db;
+let isConnecting = false;
 
-async function connectDB() {
+async function getDB() {
+    if (db) return db;
+    if (isConnecting) {
+        // Wait briefly if connection is already in progress
+        await new Promise(resolve => setTimeout(resolve, 500));
+        return db;
+    }
+
+    isConnecting = true;
     try {
         await client.connect();
         db = client.db(process.env.MONGODB_DATABASE || "feedback_hub");
@@ -49,14 +58,27 @@ async function connectDB() {
                 console.log("✅ Seeded default superAdmin user from .env");
             }
         }
+        isConnecting = false;
+        return db;
     } catch (err) {
+        isConnecting = false;
         console.error("❌ MongoDB connection failed:", err.message);
-        process.exit(1);
+        throw err;
     }
 }
 
 app.use(cors({ origin: "http://localhost:8080" }));
 app.use(express.json());
+
+// Guarantee DB Connection for every request (Serverless friendly)
+app.use(async (req, res, next) => {
+    try {
+        req.db = await getDB();
+        next();
+    } catch (err) {
+        res.status(500).json({ error: "Database connection failed" });
+    }
+});
 
 const requireAuth = (req, res, next) => {
     const authHeader = req.headers.authorization;
@@ -88,7 +110,7 @@ app.post("/api/auth/login", async (req, res) => {
     try {
         const { email, password } = req.body;
         const normalizedEmail = email?.trim()?.toLowerCase();
-        const user = await db.collection("users").findOne({ email: normalizedEmail });
+        const user = await req.db.collection("users").findOne({ email: normalizedEmail });
 
         if (!user) return res.status(401).json({ error: "Invalid credentials" });
         const isMatch = await bcrypt.compare(password, user.password);
@@ -112,11 +134,11 @@ app.post("/api/users", requireAuth, requireSuperAdmin, async (req, res) => {
         if (!email || !password) return res.status(400).json({ error: "Email and password required" });
 
         const normalizedEmail = email.trim().toLowerCase();
-        const existing = await db.collection("users").findOne({ email: normalizedEmail });
+        const existing = await req.db.collection("users").findOne({ email: normalizedEmail });
         if (existing) return res.status(400).json({ error: "User already exists" });
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        const result = await db.collection("users").insertOne({
+        const result = await req.db.collection("users").insertOne({
             email: normalizedEmail,
             password: hashedPassword,
             role: "admin", // Default to admin, only superAdmin creates users
@@ -130,7 +152,7 @@ app.post("/api/users", requireAuth, requireSuperAdmin, async (req, res) => {
 
 app.get("/api/users", requireAuth, requireSuperAdmin, async (req, res) => {
     try {
-        const users = await db.collection("users")
+        const users = await req.db.collection("users")
             .find({}, { projection: { password: 0 } })
             .sort({ created_at: -1 })
             .toArray();
@@ -144,7 +166,7 @@ app.get("/api/users", requireAuth, requireSuperAdmin, async (req, res) => {
 app.post("/api/feedback", async (req, res) => {
     try {
         const doc = { ...req.body, created_at: new Date().toISOString() };
-        const result = await db.collection("feedback_submissions").insertOne(doc);
+        const result = await req.db.collection("feedback_submissions").insertOne(doc);
         res.json({ insertedId: result.insertedId });
     } catch (err) {
         console.error(err);
@@ -154,7 +176,7 @@ app.post("/api/feedback", async (req, res) => {
 
 app.get("/api/feedback", requireAuth, async (req, res) => {
     try {
-        const docs = await db
+        const docs = await req.db
             .collection("feedback_submissions")
             .find({})
             .sort({ created_at: -1 })
@@ -172,7 +194,7 @@ app.get("/api/feedback", requireAuth, async (req, res) => {
 app.post("/api/prompts", async (req, res) => {
     try {
         const doc = { ...req.body, created_at: new Date().toISOString() };
-        const result = await db.collection("prompt_submissions").insertOne(doc);
+        const result = await req.db.collection("prompt_submissions").insertOne(doc);
         res.json({ insertedId: result.insertedId });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -181,7 +203,7 @@ app.post("/api/prompts", async (req, res) => {
 
 app.get("/api/prompts", requireAuth, async (req, res) => {
     try {
-        const docs = await db
+        const docs = await req.db
             .collection("prompt_submissions")
             .find({})
             .sort({ created_at: -1 })
@@ -196,14 +218,9 @@ app.get("/api/prompts", requireAuth, async (req, res) => {
 
 // ─── Start ─────────────────────────────────────────────────────
 if (process.env.NODE_ENV !== "production") {
-    connectDB().then(() => {
-        app.listen(PORT, () => {
-            console.log(`🚀 API server running at http://localhost:${PORT}`);
-        });
+    app.listen(PORT, () => {
+        console.log(`🚀 API server running at http://localhost:${PORT}`);
     });
-} else {
-    // Vercel Serverless Function entry point
-    connectDB().catch(console.error);
 }
 
 export default app;
