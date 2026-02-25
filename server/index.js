@@ -11,19 +11,7 @@ const app = express();
 const PORT = process.env.SERVER_PORT || 3001;
 const JWT_SECRET = process.env.JWT_SECRET || "fallback_super_secret_for_dev_mode";
 
-const uri = process.env.MONGODB_URI;
-if (!uri) {
-    console.error("❌ MONGODB_URI is not set in .env");
-    process.exit(1);
-}
-
-const client = new MongoClient(uri, {
-    serverApi: {
-        version: ServerApiVersion.v1,
-        strict: true,
-        deprecationErrors: true,
-    },
-});
+let client;
 
 let db;
 let isConnecting = false;
@@ -38,6 +26,21 @@ async function getDB() {
 
     isConnecting = true;
     try {
+        const uri = process.env.MONGODB_URI;
+        if (!uri) {
+            throw new Error("MONGODB_URI is not set in environment variables.");
+        }
+
+        if (!client) {
+            client = new MongoClient(uri, {
+                serverApi: {
+                    version: ServerApiVersion.v1,
+                    strict: true,
+                    deprecationErrors: true,
+                },
+            });
+        }
+
         await client.connect();
         db = client.db(process.env.MONGODB_DATABASE || "feedback_hub");
         console.log("✅ Connected to MongoDB Atlas");
