@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { supabase } from "@/integrations/supabase/client";
+import { insertOne } from "@/integrations/mongodb/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -34,14 +34,13 @@ const PromptSubmission = () => {
     const onSubmit = async (data: FormData) => {
         setSubmitting(true);
         try {
-            const { error } = await supabase.from("prompt_submissions").insert({
+            await insertOne("prompt_submissions", {
                 name: data.name,
-                email: data.email,
+                email: data.email || null,
                 phone: data.phone,
                 prompt: data.prompt,
+                created_at: new Date().toISOString(),
             });
-
-            if (error) throw error;
 
             setSubmittedName(data.name.split(" ")[0]);
             setSubmitted(true);

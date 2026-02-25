@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Lock, ShieldCheck } from "lucide-react";
+import { ADMIN_SESSION_KEY, type AdminSession } from "@/integrations/mongodb/types";
+import { login } from "@/integrations/mongodb/client";
 
 interface AdminLoginProps {
   onLogin: () => void;
@@ -20,11 +21,11 @@ export const AdminLogin = ({ onLogin }: AdminLoginProps) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
+      const session = await login(email, password);
+      localStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(session));
       onLogin();
     } catch (err: any) {
-      toast({ title: "Login failed", description: err.message, variant: "destructive" });
+      toast({ title: "Login failed", description: err.message || "Invalid credentials.", variant: "destructive" });
     } finally {
       setLoading(false);
     }

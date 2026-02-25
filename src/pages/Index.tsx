@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { supabase } from "@/integrations/supabase/client";
+import { insertOne } from "@/integrations/mongodb/client";
 import { ThankYou } from "@/components/ThankYou";
 import { StarRating } from "@/components/StarRating";
 import { Button } from "@/components/ui/button";
@@ -46,19 +46,18 @@ const Index = () => {
 
     setSubmitting(true);
     try {
-      const { error } = await supabase.from("feedback_submissions").insert({
+      await insertOne("feedback_submissions", {
         name: data.name,
         email: data.email || null,
         phone: data.phone,
         comments: data.comments,
         overall_rating: data.overall_rating,
-        // Send null for removed questions if DB expects them, otherwise omit if schema allows
         q1_rating: null,
         q2_rating: null,
         q3_rating: null,
         q4_rating: null,
+        created_at: new Date().toISOString(),
       });
-      if (error) throw error;
       setSubmittedName(data.name.split(" ")[0]);
       setSubmitted(true);
     } catch (err) {
