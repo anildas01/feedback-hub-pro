@@ -97,16 +97,15 @@ const PromptSubmission = () => {
                 </div>
                 <div className="absolute inset-0 bg-[url('/noise.png')] opacity-10 mix-blend-overlay"></div>
                 <div className="max-w-3xl mx-auto text-center relative z-10">
-                    <div className="inline-flex items-center rounded-full bg-white/10 border border-white/20 px-3 py-0.5 text-xs font-medium text-white mb-4 backdrop-blur-sm">
+                    {/* <div className="inline-flex items-center rounded-full bg-white/10 border border-white/20 px-3 py-0.5 text-xs font-medium text-white mb-4 backdrop-blur-sm">
                         <Sparkles className="w-3 h-3 mr-1.5" />
                         Contest Challenge
-                    </div>
+                    </div> */}
                     <h1 className="text-3xl sm:text-4xl font-black mb-4 leading-tight">
-                        Design <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 to-amber-400">The Future</span>
+                        The <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 to-amber-400">Design Draft</span>
                     </h1>
                     <p className="text-white/80 text-base max-w-2xl mx-auto leading-relaxed">
                         Unleash your <strong>Logical Thinking</strong>, propose a <strong>New Idea</strong>, and craft a <strong>New Design</strong>.
-                        Give us a contest based on the theme, and we might build it live!
                     </p>
                     {/* <div className="mt-6 flex items-center justify-center gap-2 text-yellow-300 text-sm font-bold bg-white/10 py-1.5 px-3 rounded-lg inline-block backdrop-blur-sm">
                         <Trophy className="w-4 h-4 inline mr-1" /> Win Exciting Prizes for the Best Contest!
@@ -118,9 +117,9 @@ const PromptSubmission = () => {
             <div className="flex-1 max-w-2xl mx-auto px-4 py-12 w-full">
                 <div className="bg-card rounded-2xl shadow-xl border border-border p-6 sm:p-10">
                     <div className="mb-8">
-                        <h2 className="text-2xl font-bold text-foreground">Submit Your Contest</h2>
+                        <h2 className="text-2xl font-bold text-foreground">Submit Your Idea</h2>
                         <p className="text-muted-foreground mt-2">
-                            Provide your details and your creative contest below.
+                            Provide your details and your creative idea below.
                         </p>
                     </div>
 
@@ -176,7 +175,7 @@ const PromptSubmission = () => {
 
                             <div className="bg-secondary/30 rounded-xl p-4 border border-border/50">
                                 <Label htmlFor="prompt" className="mb-2 block text-base">
-                                    Describe your website idea / Contest <span className="text-destructive">*</span>
+                                    Describe your website idea<span className="text-destructive">*</span>
                                 </Label>
                                 <p className="text-xs text-muted-foreground mb-3">
                                     Be specific! Describe the layout, colors, functionality, and purpose. The more detailed, the better.
@@ -204,7 +203,7 @@ const PromptSubmission = () => {
                                 </>
                             ) : (
                                 <>
-                                    <Sparkles className="w-5 h-5 mr-2" /> Submit Contest
+                                    <Sparkles className="w-5 h-5 mr-2" /> Submit
                                 </>
                             )}
                         </Button>
