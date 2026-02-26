@@ -170,7 +170,20 @@ export default function Admin() {
     );
   }
 
-  if (!loggedIn) return <AdminLogin onLogin={() => setLoggedIn(true)} />;
+  if (!loggedIn) {
+    return (
+      <AdminLogin
+        onLogin={(role) => {
+          setUserRole(role);
+          setLoggedIn(true);
+          // Manually trigger the first fetch right after login to avoid empty state
+          if (activeTab === "feedback") fetchSubmissions();
+          else if (activeTab === "prompts") fetchPrompts();
+          else if (activeTab === "users" && role === "superAdmin") loadUsers();
+        }}
+      />
+    );
+  }
 
   const ratingLabels = [
     { key: "q1_rating" as const, label: "Web Development Content" },
@@ -474,8 +487,8 @@ export default function Admin() {
 
               <form onSubmit={handleCreateUser} className="space-y-4">
                 <div className="space-y-1.5">
-                  <Label>Email</Label>
-                  <Input type="email" placeholder="admin@example.com" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} required />
+                  <Label>Identifier / Name</Label>
+                  <Input type="text" placeholder="Minimum 6 characters" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} required minLength={6} />
                 </div>
                 <div className="space-y-1.5">
                   <Label>Password</Label>

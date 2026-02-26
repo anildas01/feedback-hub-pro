@@ -8,7 +8,7 @@ import { ADMIN_SESSION_KEY, type AdminSession } from "@/integrations/mongodb/typ
 import { login } from "@/integrations/mongodb/client";
 
 interface AdminLoginProps {
-  onLogin: () => void;
+  onLogin: (role: string) => void;
 }
 
 export const AdminLogin = ({ onLogin }: AdminLoginProps) => {
@@ -23,7 +23,7 @@ export const AdminLogin = ({ onLogin }: AdminLoginProps) => {
     try {
       const session = await login(email, password);
       localStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(session));
-      onLogin();
+      onLogin(session.role);
     } catch (err: any) {
       toast({ title: "Login failed", description: err.message || "Invalid credentials.", variant: "destructive" });
     } finally {
@@ -48,11 +48,12 @@ export const AdminLogin = ({ onLogin }: AdminLoginProps) => {
         <div className="bg-card rounded-2xl shadow-card border border-border p-6">
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-1.5">
-              <Label htmlFor="admin-email">Email</Label>
+              <Label htmlFor="admin-email">Identifier / Name</Label>
               <Input
                 id="admin-email"
-                type="email"
-                placeholder="admin@profenger.com"
+                type="text"
+                placeholder="Minimum 6 characters"
+                minLength={6}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -63,7 +64,8 @@ export const AdminLogin = ({ onLogin }: AdminLoginProps) => {
               <Input
                 id="admin-password"
                 type="password"
-                placeholder="••••••••"
+                placeholder="Minimum 6 characters"
+                minLength={6}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required

@@ -112,7 +112,12 @@ app.get("/api/health", (_req, res) => res.json({ ok: true }));
 app.post("/api/auth/login", async (req, res) => {
     try {
         const { email, password } = req.body;
-        const normalizedEmail = email?.trim()?.toLowerCase();
+
+        if (!email || !password || email.length < 6 || password.length < 6) {
+            return res.status(400).json({ error: "Identifier and password must be at least 6 characters" });
+        }
+
+        const normalizedEmail = email.trim().toLowerCase();
         const user = await req.db.collection("users").findOne({ email: normalizedEmail });
 
         if (!user) return res.status(401).json({ error: "Invalid credentials" });
@@ -134,7 +139,7 @@ app.post("/api/auth/login", async (req, res) => {
 app.post("/api/users", requireAuth, requireSuperAdmin, async (req, res) => {
     try {
         const { email, password } = req.body;
-        if (!email || !password) return res.status(400).json({ error: "Email and password required" });
+        if (!email || !password || email.length < 6 || password.length < 6) return res.status(400).json({ error: "Identifier and password must be at least 6 characters" });
 
         const normalizedEmail = email.trim().toLowerCase();
         const existing = await req.db.collection("users").findOne({ email: normalizedEmail });
